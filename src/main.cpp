@@ -4,17 +4,22 @@
 //GLFW
 #include <GLFW\glfw3.h>
 #include <iostream>
+#include <glm.hpp>
+#include <gtc\matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 #include "..\Shader.h"
 #include <SOIL.h>
 
+using namespace glm;
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
 bool paintQuad = false;
 float mixStuff;
-int rotateY = 0;
+float gradosRot = 0;
+float aumentoRot;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-
+bool aumentarRotRight, aumentarRotLeft;
 void DrawVao(GLuint programID, GLuint VAO) {
 	//establecer el shader
 	glUseProgram(programID);
@@ -31,8 +36,8 @@ void DrawVao(GLuint programID, GLuint VAO) {
 	}
 
 }
+
 void main() {
-	rotateY = 0;
 	mixStuff = 0.0f;
 	//initGLFW
 	if (!glfwInit())
@@ -204,7 +209,8 @@ void main() {
 
 	GLuint texture1, texture2;
 
-
+	GLint matID;
+	
 
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -236,12 +242,15 @@ void main() {
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	rotateY = 0;
+	aumentoRot = 0.05f;
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))
 	{
 
+		if (gradosRot > 360 || gradosRot < -360) {
+			gradosRot = 0;
+		}
 
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 
@@ -252,20 +261,18 @@ void main() {
 
 		glfwPollEvents();
 
-
-
+		matID = glGetUniformLocation(shader.Program,"matrizFinal");
+		
 		//Establecer el color de fondo
 		glClear(GL_COLOR_BUFFER_BIT);
 
-
 		GLint locTex = glGetUniformLocation(shader.Program, "ourTexture");
 		GLint locTex2 = glGetUniformLocation(shader.Program, "ourTexture2");
-		GLint loc = glGetUniformLocation(shader.Program, "mixStuff");
-		GLint loc2 = glGetUniformLocation(shader.Program, "rotateY");
+		GLint mixID = glGetUniformLocation(shader.Program, "mixStuff");
 		shader.USE();
 		
-		glUniform1f(loc, mixStuff);
-		glUniform1i(loc2, rotateY);
+		glUniform1f(mixID, mixStuff);
+
 
 		//glClearColor(0, 1, 0, 0);
 
@@ -294,6 +301,24 @@ void main() {
 		//pintar con lineas
 		//pintar con triangulos
 
+		if (aumentarRotLeft) {
+			gradosRot-=aumentoRot;
+		}
+		else if (aumentarRotRight) {
+			gradosRot+= aumentoRot;
+		}
+
+		//matriz = translate(matriz, vec3(0.5f, 0.5f, 0));
+		mat4 matriz;
+
+		matriz = translate(matriz, vec3(0.5f, 0.5f, 0));
+
+		matriz = rotate(matriz, radians(gradosRot), vec3(0,1,0));
+
+		matriz = scale(matriz, vec3(0.5f, -0.5f, 0.0f));
+
+
+		glUniformMatrix4fv(matID, 1, GL_FALSE, glm::value_ptr(matriz));
 
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
@@ -327,12 +352,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_DOWN&&action == GLFW_PRESS) {
 		if (mixStuff>0.1)		mixStuff -= 0.1f;
 	}
-	if (key == GLFW_KEY_S&&action == GLFW_PRESS) {
-		if (rotateY == 0) {
-			rotateY = 1;
-		}
-		else {
-			rotateY = 0;
-		}
+	if (key == GLFW_KEY_RIGHT&&action == GLFW_PRESS) {
+		aumentarRotRight = true;
 	}
+	else if (key == GLFW_KEY_RIGHT&&action == GLFW_RELEASE) {
+		aumentarRotRight = false;
+	}
+
+	if (key == GLFW_KEY_LEFT&&action == GLFW_PRESS) {
+		aumentarRotLeft = true;
+	}
+	else if (key == GLFW_KEY_LEFT&&action == GLFW_RELEASE) {
+		aumentarRotLeft = false;
+	}
+
 }
