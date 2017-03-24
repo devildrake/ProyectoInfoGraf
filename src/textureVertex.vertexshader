@@ -1,0 +1,19 @@
+#version 330 core
+
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 pos;
+layout(location = 1) in vec3 col;
+layout(location = 2) in vec2 tex;
+
+uniform int rotateY;
+out vec2 TexCoord;
+
+void main(){
+if(rotateY == 0)
+	gl_Position = vec4((-1*pos),1);
+	
+	else
+	gl_Position = vec4(pos.x,(-1*pos.y),pos.z,1);
+
+	TexCoord = tex;
+}
