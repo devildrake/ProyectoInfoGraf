@@ -15,11 +15,13 @@ using namespace std;
 const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
 bool paintQuad = false;
+bool fade1 = false;
 float mixStuff;
+float rotacionX,rotacionY = 0.0f;
 float gradosRot = 0;
 float aumentoRot;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-bool aumentarRotRight, aumentarRotLeft;
+bool aumentarRotRight, aumentarRotLeft,aumentarUp,aumentarDown;
 void DrawVao(GLuint programID, GLuint VAO) {
 	//establecer el shader
 	glUseProgram(programID);
@@ -35,6 +37,15 @@ void DrawVao(GLuint programID, GLuint VAO) {
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	}
 
+}
+
+mat4 GenerateModelMatrix(vec3 aTranslation, vec3 aRotation, vec3 CubesPosition, float aRot) {
+	mat4 temp;
+	temp = translate(temp, aTranslation);
+	temp = translate(temp, CubesPosition);
+	temp = rotate(temp, radians(aRot), aRotation);
+
+	return temp;
 }
 
 void main() {
@@ -96,7 +107,7 @@ void main() {
 
 	//Shader shader = Shader("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
 
-	Shader shader = Shader("./src/textureVertex.vertexshader", "./src/textureFragment.fragmentshader");
+	Shader shader = Shader("./src/textureVertex3d.vertexshader", "./src/textureFragment3d.fragmentshader");
 
 	//GLuint programID = shader.Program;
 
@@ -120,12 +131,69 @@ void main() {
 	//	-0.5f,  0.5f, 0.0f   // Top Left 
 	//};
 
+	//GLfloat VertexBufferObject[] = {
+	//	// Positions          // Colors           // Texture Coords
+	//	0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
+	//	0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
+	//	-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
+	//	-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
+	//};
+
 	GLfloat VertexBufferObject[] = {
-		// Positions          // Colors           // Texture Coords
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f , -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+
+	vec3 CubesPositionBuffer[] = {
+		vec3(0.0f ,  0.0f,  0.0f),
+		vec3(2.0f ,  5.0f, -15.0f),
+		vec3(-1.5f, -2.2f, -2.5f),
+		vec3(-3.8f, -2.0f, -12.3f),
+		vec3(2.4f , -0.4f, -3.5f),
+		vec3(-1.7f,  3.0f, -7.5f),
+		vec3(1.3f , -2.0f, -2.5f),
+		vec3(1.5f ,  2.0f, -2.5f),
+		vec3(1.5f ,  0.2f, -1.5f),
+		vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 
@@ -141,11 +209,15 @@ void main() {
 	//GLuint IndexBufferObject[]{
 	//	0,1,2,
 	//	1,3,0 };
-	GLuint IndexBufferObject[]{
-		2,0,3,
-		2,1,0
 
-	};
+	//GLuint IndexBufferObject[]{
+	//	2,0,3,
+	//	2,1,0
+	//};
+
+
+
+
 	//-EBO
 
 
@@ -153,7 +225,7 @@ void main() {
 
 	// Crear los VBO, VAO y EBO
 
-	GLuint VAO, EBO, VBO;
+	GLuint VAO, /*EBO,*/ VBO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO); {
 
@@ -164,20 +236,20 @@ void main() {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferObject), VertexBufferObject, GL_DYNAMIC_DRAW);
 
 
-		glGenBuffers(1, &EBO);
+	/*	glGenBuffers(1, &EBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexBufferObject), IndexBufferObject, GL_DYNAMIC_DRAW);
-
+		*/
 
 		//Propiedades
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
+		glVertexAttribPointer(1, 0, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
 		glEnableVertexAttribArray(1);
 
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(6 * sizeof(GL_FLOAT)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
 		glEnableVertexAttribArray(2);
 
 		//LIMPIA LOS BUFFERS DE VERTICES
@@ -209,7 +281,7 @@ void main() {
 
 	GLuint texture1, texture2;
 
-	GLint matID;
+	GLint matProjID,matViewID,matModelID;
 	
 
 	glGenTextures(1, &texture1);
@@ -222,7 +294,7 @@ void main() {
 
 	int widthTex, heightTex;
 	//widthTex = heightTex = 512;
-	unsigned char* image = SOIL_load_image("./src/Pablito.png", &widthTex, &heightTex, 0, SOIL_LOAD_RGB);
+	unsigned char* image = SOIL_load_image("./src/texture.png", &widthTex, &heightTex, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, widthTex, heightTex, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	SOIL_free_image_data(image);
 
@@ -243,10 +315,20 @@ void main() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	aumentoRot = 0.05f;
-
+	
+	glEnable(GL_DEPTH_TEST);
 	//bucle de dibujado
+
+
 	while (!glfwWindowShouldClose(window))
 	{
+		mat4 finalMatrix; //Modelo
+		mat4 cam; //Vista
+		mat4 proj; //Proyeccion
+
+
+		//mat4 proj = perspective(60, screenWithd/screenHeight, 0.1f, 100);
+
 
 		if (gradosRot > 360 || gradosRot < -360) {
 			gradosRot = 0;
@@ -261,10 +343,15 @@ void main() {
 
 		glfwPollEvents();
 
-		matID = glGetUniformLocation(shader.Program,"matrizFinal");
-		
+		matModelID = glGetUniformLocation(shader.Program, "matrizModel");
+		matProjID = glGetUniformLocation(shader.Program, "matrizProj");
+		matViewID = glGetUniformLocation(shader.Program, "matrizView");
+
 		//Establecer el color de fondo
-		glClear(GL_COLOR_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
 
 		GLint locTex = glGetUniformLocation(shader.Program, "ourTexture");
 		GLint locTex2 = glGetUniformLocation(shader.Program, "ourTexture2");
@@ -294,32 +381,69 @@ void main() {
 		glUniform1i(locTex2, 1);
 		
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 		
 		
 		//pintar con lineas
 		//pintar con triangulos
 
 		if (aumentarRotLeft) {
-			gradosRot-=aumentoRot;
+			rotacionY-=aumentoRot;
 		}
 		else if (aumentarRotRight) {
-			gradosRot+= aumentoRot;
+			rotacionY+= aumentoRot;
+		}
+
+		if (aumentarUp) {
+			rotacionX -= aumentoRot;
+		}
+		else if (aumentarDown) {
+			rotacionX += aumentoRot;
+		}
+
+		if (fade1) {
+			if (mixStuff >= 0&&mixStuff<1) {
+				mixStuff += 0.01f;
+			}
+		}
+		else {
+			if (mixStuff>0.01f) {
+				mixStuff -= 0.01f;
+			}
 		}
 
 		//matriz = translate(matriz, vec3(0.5f, 0.5f, 0));
-		mat4 matriz;
-
-		matriz = translate(matriz, vec3(0.5f, 0.5f, 0));
-
-		matriz = rotate(matriz, radians(gradosRot), vec3(0,1,0));
-
-		matriz = scale(matriz, vec3(0.5f, -0.5f, 0.0f));
 
 
-		glUniformMatrix4fv(matID, 1, GL_FALSE, glm::value_ptr(matriz));
+		//matriz = scale(matriz, vec3(0.5f, -0.5f, 0.0f));
 
+		float FOV = 45.0f;
+
+		proj = perspective(FOV, (float)(800/600), 0.1f, 100.0f);
+
+		cam = translate(cam, vec3(0.0f, 0.0f, -3.0f));
+		glUniformMatrix4fv(matProjID, 1, GL_FALSE, glm::value_ptr(proj));
+		glUniformMatrix4fv(matViewID, 1, GL_FALSE, glm::value_ptr(cam));
+
+
+
+		for (int i = 0; i < 10; i++) {
+			mat4 matriz;
+			if (i == 0) {
+				matriz = translate(matriz, CubesPositionBuffer[0]);
+				matriz = rotate(matriz, radians(rotacionX), vec3(1,0,0));
+				matriz = rotate(matriz, radians(rotacionY),vec3(0,1,0));
+			}
+			else {
+				float rotot = glfwGetTime() * 100;
+				rotot = (int)rotot % 360;
+				matriz = GenerateModelMatrix(vec3(0.0f), vec3(1, 0.5f, 0), CubesPositionBuffer[i], rotot);
+			}
+			glUniformMatrix4fv(matModelID, 1, GL_FALSE, glm::value_ptr(matriz));
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+		glBindVertexArray(0);
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
 	}
@@ -329,7 +453,7 @@ void main() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
+	//glDeleteBuffers(1, &EBO);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -347,11 +471,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 
 	if (key == GLFW_KEY_UP&&action == GLFW_PRESS) {
-		if (mixStuff<1)		mixStuff += 0.1f;
+		aumentarUp = true;
 	}
+
+	if (key == GLFW_KEY_UP&&action == GLFW_RELEASE) {
+		aumentarUp = false;
+	}
+
 	if (key == GLFW_KEY_DOWN&&action == GLFW_PRESS) {
-		if (mixStuff>0.1)		mixStuff -= 0.1f;
+		aumentarDown = true;
 	}
+
+	if (key == GLFW_KEY_DOWN&&action == GLFW_RELEASE) {
+		aumentarDown = false;
+	}
+
 	if (key == GLFW_KEY_RIGHT&&action == GLFW_PRESS) {
 		aumentarRotRight = true;
 	}
@@ -364,6 +498,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 	else if (key == GLFW_KEY_LEFT&&action == GLFW_RELEASE) {
 		aumentarRotLeft = false;
+	}
+
+	if (key == GLFW_KEY_1&&action == GLFW_PRESS) {
+		fade1 = true;
+	}
+	else if (key == GLFW_KEY_2&&action == GLFW_PRESS) {
+		fade1 = false;
 	}
 
 }
