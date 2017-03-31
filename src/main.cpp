@@ -281,8 +281,8 @@ void main() {
 
 	GLuint texture1, texture2;
 
-	GLint matProjID,matViewID,matModelID;
-	
+	//GLint matProjID,matViewID,matModelID;
+	GLint matrizDefID;
 
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -322,7 +322,8 @@ void main() {
 
 	while (!glfwWindowShouldClose(window))
 	{
-		mat4 finalMatrix; //Modelo
+		//mat4 finalMatrix; //Modelo
+
 		mat4 cam; //Vista
 		mat4 proj; //Proyeccion
 
@@ -343,9 +344,10 @@ void main() {
 
 		glfwPollEvents();
 
-		matModelID = glGetUniformLocation(shader.Program, "matrizModel");
-		matProjID = glGetUniformLocation(shader.Program, "matrizProj");
-		matViewID = glGetUniformLocation(shader.Program, "matrizView");
+		//matModelID = glGetUniformLocation(shader.Program, "matrizModel");
+		//matProjID = glGetUniformLocation(shader.Program, "matrizProj");
+		//matViewID = glGetUniformLocation(shader.Program, "matrizView");
+		matrizDefID = glGetUniformLocation(shader.Program, "matrizDefinitiva");
 
 		//Establecer el color de fondo
 		//glClear(GL_COLOR_BUFFER_BIT);
@@ -423,10 +425,8 @@ void main() {
 		proj = perspective(FOV, (float)(800/600), 0.1f, 100.0f);
 
 		cam = translate(cam, vec3(0.0f, 0.0f, -3.0f));
-		glUniformMatrix4fv(matProjID, 1, GL_FALSE, glm::value_ptr(proj));
-		glUniformMatrix4fv(matViewID, 1, GL_FALSE, glm::value_ptr(cam));
-
-
+		//glUniformMatrix4fv(matProjID, 1, GL_FALSE, glm::value_ptr(proj));
+		//glUniformMatrix4fv(matViewID, 1, GL_FALSE, glm::value_ptr(cam));
 
 		for (int i = 0; i < 10; i++) {
 			mat4 matriz;
@@ -440,7 +440,14 @@ void main() {
 				rotot = (int)rotot % 360;
 				matriz = GenerateModelMatrix(vec3(0.0f), vec3(1, 0.5f, 0), CubesPositionBuffer[i], rotot);
 			}
-			glUniformMatrix4fv(matModelID, 1, GL_FALSE, glm::value_ptr(matriz));
+			//glUniformMatrix4fv(matModelID, 1, GL_FALSE, glm::value_ptr(matriz));
+
+			mat4 matrizDefinitiva;
+
+			matrizDefinitiva = proj*cam*matriz;
+
+			glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
+
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 		glBindVertexArray(0);
