@@ -12,8 +12,8 @@ out vec2 TexCoord;
 uniform mat4 matrizDefinitiva;
 
 void main(){
-	//gl_Position = matrizProj*matrizView*matrizModel*(vec4((pos),1));
 	
 	gl_Position = matrizDefinitiva*(vec4((pos),1));
 	TexCoord = tex;
+	
 }
