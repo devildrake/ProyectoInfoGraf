@@ -9,24 +9,22 @@
 #include <gtc/type_ptr.hpp>
 #include "..\Shader.h"
 #include <SOIL.h>
+#include "..\Mesh.h"
+#include "..\Model.h"
 
 using namespace glm;
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
-bool paintQuad = false;
-bool fade1 = false;
-float mixStuff;
 float rotacionY = 0.0f;
-float rotacionX = -90.0f;
+float rotacionX = 0.0f;
 float gradosRot = 0;
 float aumentoRot;
 bool aumentarRotRight, aumentarRotLeft, aumentarUp, aumentarDown;
-
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void cursor_callback(GLFWwindow* window,double xPos, double yPos);
 void scroll_callback(GLFWwindow* window,double xOffset, double yOffset);
-
+int modelToDraw = 1;
 #pragma region Clase Camera
 
 class Camera
@@ -83,6 +81,11 @@ void Camera::DoMovement(GLFWwindow * window) {
 		bool forward = glfwGetKey(window, GLFW_KEY_S);
 		bool left = glfwGetKey(window, GLFW_KEY_A);
 		bool right = glfwGetKey(window, GLFW_KEY_D);
+		bool goFaster = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
+
+		if (goFaster) {
+			cameraSpeed = 20;
+		}
 
 		if (forward) {
 			cameraPos += normalize(cameraFront)*cameraSpeed*Deltatime;
@@ -116,8 +119,8 @@ void Camera::MouseMove(GLFWwindow* window, double xpos, double ypos) {
 		offsetX *= Sensitivity;
 		offsetY *= Sensitivity;
 
-		cout << "ClaseOffsetX " << offsetX << endl;
-		cout << "ClaseOffsetY " << offsetY << endl;
+		//cout << "ClaseOffsetX " << offsetX << endl;
+		//cout << "ClaseOffsetY " << offsetY << endl;
 
 		YAW += offsetX;
 		PITCH += offsetY;
@@ -176,14 +179,9 @@ void DrawVao(GLuint programID, GLuint VAO) {
 
 	//pitar el VAO
 	glBindVertexArray(VAO);
-	if (!paintQuad) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	}
-	else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	}
+	
 
 }
 
@@ -220,14 +218,10 @@ Camera camara(vec3(0, 0, 3), normalize(vec3(0, 0, -3)), 0.04f, 45.0f);
 
 void main() {
 
-	//runFaster = false;
-	//sensibilidad = 0.04f;
-	//start = false;
-	mixStuff = 0.0f;
-	//initGLFW
+	//initalize GLFW
+
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
-	//TODO
 
 	//set GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -237,10 +231,9 @@ void main() {
 
 
 	//create a window
-	//TODO
+
+
 	GLFWwindow* window;
-
-
 
 	window = glfwCreateWindow(WIDTH, HEIGHT, "Primera ventana", nullptr, nullptr);
 	if (!window) {
@@ -251,7 +244,6 @@ void main() {
 	glfwMakeContextCurrent(window);
 
 	//set GLEW and inicializate
-	//TODO
 
 	glewExperimental = GL_TRUE;
 	if (GLEW_OK != glewInit()) {
@@ -261,8 +253,8 @@ void main() {
 	}
 	int screenWithd, screenHeight;
 	glfwGetFramebufferSize(window, &screenWithd, &screenHeight);
+
 	//set function when callback
-	//TODO
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -274,52 +266,15 @@ void main() {
 
 
 	//set windows and viewport
-	//TODO
 	glViewport(0, 0, screenWithd, screenHeight);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	//fondo
+	//fondo azul
 	glClearColor(0.0, 0.0, 1.0, 1.0);
-
-
-	//TODO
-
 
 	//cargamos los shader
 
-	//Shader shader = Shader("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
-
 	Shader shader = Shader("./src/textureVertex3d.vertexshader", "./src/textureFragment3d.fragmentshader");
-
-	//GLuint programID = shader.Program;
-
-	//GLuint programID = LoadShaders("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
-
-	// Definir el buffer de vertices
-	//Reserva de memoria
-
-	//GLfloat traingleVertex[] = {
-	//-0.5f,-0.5f,0,
-	//0.5f,0.5f,0,
-	//-0.5f,0.5f,0,
-	//0.5f,-0.5f,0
-	//};
-
-	//VBO
-	//GLfloat VertexBufferObject[] = {
-	//	0.5f,  0.5f, 0.0f,  // Top Right
-	//	0.5f, -0.5f, 0.0f,  // Bottom Right
-	//	-0.5f, -0.5f, 0.0f,  // Bottom Left
-	//	-0.5f,  0.5f, 0.0f   // Top Left 
-	//};
-
-	//GLfloat VertexBufferObject[] = {
-	//	// Positions          // Colors           // Texture Coords
-	//	0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
-	//	0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
-	//	-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
-	//	-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
-	//};
 
 	GLfloat VertexBufferObject[] = {
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -460,11 +415,9 @@ void main() {
 
 	//GLint loc = glGetUniformLocation(shader.Program, "time");
 
+	//Se carga una textura
+	GLuint texture1;
 
-	GLuint texture1, texture2;
-
-	//GLint matProjID,matViewID,matModelID;
-	GLint matrizDefID;
 
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -475,45 +428,34 @@ void main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	int widthTex, heightTex;
-	//widthTex = heightTex = 512;
 	unsigned char* image = SOIL_load_image("./src/texture.png", &widthTex, &heightTex, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, widthTex, heightTex, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	SOIL_free_image_data(image);
 
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int widthTex2, heightTex2;
-
-	unsigned char* image2 = SOIL_load_image("./src/PablitoSatan.png", &widthTex2, &heightTex2, 0, SOIL_LOAD_RGB);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, widthTex2, heightTex2, 0, GL_RGB, GL_UNSIGNED_BYTE, image2);
-	SOIL_free_image_data(image2);
-
+	//Se libera el cargador de texturas
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	aumentoRot = 0.05f;
 	
+	//Se habilita el 3D
 	glEnable(GL_DEPTH_TEST);
+
+
+	//Se cargan los modelos 3D
+	Model arañaModel;
+	arañaModel.loadModel("./src/spider/spider.obj");
+
+	Model boxModel;
+	boxModel.loadModel("./src/spider/box.obj");
+
+	Model wusonModel("./src/spider/WusonObj.obj");
+
+	GLint matrizDefID;
+
 	//bucle de dibujado
-
-	//cameraPos = vec3(0,0,3);
-	//cameraDir = normalize(vec3(0,0,0)- cameraPos);
-	////cameraDir = vec3(0, 0, -1);
-	//cameraRight = normalize(cross(vec3(0, 1, 0), cameraDir));
-
-	//vec3 cameraUp = normalize(cross(cameraDir, cameraRight));
-
-	//moveForward = moveBackwards = moveRight = moveLeft = false;
-	//Pitch = 0;
 
 	while (!glfwWindowShouldClose(window))
 	{
-
 		camara.DoMovement(window);
 
 		mat4 cam; //Vista
@@ -531,22 +473,18 @@ void main() {
 		//glClear(GL_COLOR_BUFFER_BIT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
 		GLint locTex = glGetUniformLocation(shader.Program, "ourTexture");
-		GLint locTex2 = glGetUniformLocation(shader.Program, "ourTexture2");
+		//GLint locTex2 = glGetUniformLocation(shader.Program, "ourTexture2");
 		GLint mixID = glGetUniformLocation(shader.Program, "mixStuff");
 		shader.USE();
-		
-		glUniform1f(mixID, mixStuff);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glUniform1i(locTex,0);
 
-		glActiveTexture(GL_TEXTURE1);
+	/*	glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
-		glUniform1i(locTex2, 1);
+		glUniform1i(locTex2, 1);*/
 		
 		glBindVertexArray(VAO);
 
@@ -565,43 +503,54 @@ void main() {
 			rotacionX += aumentoRot;
 		}
 
-		if (fade1) {
-			if (mixStuff >= 0&&mixStuff<1) {
-				mixStuff += 0.01f;
-			}
-		}
-		else {  
-			if (mixStuff>0.01f) {
-				mixStuff -= 0.01f;
-			}
-		}
-
 		proj = perspective(radians(camara.GetFOV()), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
 		cam = camara.LookAt();
 
-		for (int i = 0; i < 10; i++) {
-			//Model Matrix
-			mat4 modelMatrix;
-			if (i == 0) {
-				modelMatrix = translate(modelMatrix, CubesPositionBuffer[0]);
-				modelMatrix = rotate(modelMatrix, radians(rotacionX), vec3(1,0,0));
-				modelMatrix = rotate(modelMatrix, radians(rotacionY),vec3(0,1,0));
-			}
-			else {
-				float rotot = glfwGetTime() * 100;
-				rotot = (int)rotot % 360;
-				modelMatrix = GenerateModelMatrix(vec3(0.0f), vec3(1, 0.5f, 0), CubesPositionBuffer[i], rotot);
-			}
+		//Model Matrix
+
+		mat4 modelMatrix;
+
+		//float rotot = 0;
+		//modelMatrix = GenerateModelMatrix(vec3(0.0f), vec3(1, 0.5f, 0), CubesPositionBuffer[0], rotot);
+		//modelMatrix = scale(modelMatrix, glm::vec3(0.2f));
 
 			mat4 matrizDefinitiva;
+			switch (modelToDraw) {
+			case 1:
+				modelMatrix = scale(modelMatrix, glm::vec3(0.2f));
+				modelMatrix = rotate(modelMatrix, radians(rotacionX), vec3(1, 0, 0));
+				modelMatrix = rotate(modelMatrix, radians(rotacionY), vec3(0, 1, 0));
 
-			matrizDefinitiva = proj*camara.LookAt()*modelMatrix;
+				matrizDefinitiva = proj*camara.LookAt()*modelMatrix;
 
-			glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
+				glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
+				arañaModel.Draw(shader, GL_DYNAMIC_DRAW);
+				break;
+			case 2:
+				modelMatrix = scale(modelMatrix, glm::vec3(2.0f));
+				modelMatrix = rotate(modelMatrix, radians(rotacionX), vec3(1, 0, 0));
+				modelMatrix = rotate(modelMatrix, radians(rotacionY), vec3(0, 1, 0));
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+				matrizDefinitiva = proj*camara.LookAt()*modelMatrix;
+
+				glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
+				boxModel.Draw(shader, GL_DYNAMIC_DRAW);
+				break;
+			case 3:
+				modelMatrix = rotate(modelMatrix, radians(rotacionX), vec3(1, 0, 0));
+				modelMatrix = rotate(modelMatrix, radians(rotacionY+90), vec3(0, 1, 0));
+				modelMatrix = scale(modelMatrix, glm::vec3(2.0f));
+
+				matrizDefinitiva = proj*camara.LookAt()*modelMatrix;
+
+				glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
+				wusonModel.Draw(shader, GL_DYNAMIC_DRAW);
+				break;
+			default:
+				break;
+			}
+		
 		glBindVertexArray(0);
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
@@ -691,10 +640,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 
 	if (key == GLFW_KEY_1&&action == GLFW_PRESS) {
-		fade1 = true;
+		modelToDraw = 1;
 	}
 	else if (key == GLFW_KEY_2&&action == GLFW_PRESS) {
-		fade1 = false;
+		modelToDraw = 2;
+	}
+	else if (key == GLFW_KEY_3&&action == GLFW_PRESS) {
+		modelToDraw = 3;
 	}
 
 }

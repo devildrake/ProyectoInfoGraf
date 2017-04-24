@@ -6,9 +6,6 @@ layout(location = 2) in vec2 tex;
 
 out vec2 TexCoord;
 
-//uniform mat4 matrizModel;
-//uniform mat4 matrizProj;
-//uniform mat4 matrizView;
 uniform mat4 matrizDefinitiva;
 
 void main(){
