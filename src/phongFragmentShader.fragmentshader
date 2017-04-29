@@ -1,0 +1,24 @@
+#version 330 core
+// Ouput data
+out vec4 color;
+in vec4 normal;
+in vec3 position;
+uniform float iluminacionAmbiental;
+uniform vec3 incidenciaLuz;
+uniform float intensidadFuenteDifusa;
+uniform float coeficienteDifuso;
+uniform float intensidadFuenteEspecular;
+uniform float coeficienteEspecular;
+uniform float rugosidad;
+uniform vec3 camPos;
+void main(){
+vec4 iluminacionDifusa;
+vec4 iluminacionEspecular;
+vec4 colorOriginal = vec4(1,0,0,1);
+
+vec4 iluminacionAmbientalL = colorOriginal*iluminacionAmbiental;
+iluminacionDifusa = colorOriginal * (intensidadFuenteDifusa*coeficienteDifuso*(dot(incidenciaLuz,normal.xyz)) *(1/(1*1+0*1+0*1)));
+iluminacionEspecular = colorOriginal * intensidadFuenteEspecular*coeficienteEspecular*pow((dot((2*dot(incidenciaLuz,normal.xyz)*normal-incidenciaLuz).xyz,camPos)),rugosidad);
+
+	color = iluminacionAmbientalL+iluminacionDifusa+iluminacionEspecular;
+}

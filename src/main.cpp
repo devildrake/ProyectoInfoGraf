@@ -32,7 +32,7 @@ public:
 	void MouseScroll(GLFWwindow* window, double xScroll, double yScroll);
 	mat4 LookAt();
 	GLfloat GetFOV();
-
+	glm::vec3 GetPos();
 
 private:
 	vec3 cameraPos;
@@ -65,6 +65,8 @@ Camera::Camera(vec3 position, vec3 direction, GLfloat sensitivity, GLfloat fov)
 	PITCH = 90 - degrees(acos(dot(vec3(0,1,0),directionX)));
 	YAW = 90 - degrees(acos(dot(directionY, z)));
 }
+
+glm::vec3 Camera::GetPos() { return cameraPos; }
 
 void Camera::DoMovement(GLFWwindow * window) {
 
@@ -261,7 +263,7 @@ void main() {
 	//Shader shader = Shader("./src/textureVertex3d.vertexshader", "./src/textureFragment3d.fragmentshader");
 
 	Shader shaderSimple = Shader("./src/textureVertex3d.vertexshader", "./src/textureFragment3d.fragmentshader");
-	Shader shaderPhong = Shader("./src/textureVertex3d.vertexshader", "./src/textureFragment3d.fragmentshader");
+	Shader shaderPhong = Shader("./src/phongVertexShader.vertexshader", "./src/phongFragmentShader.fragmentshader");
 
 	Object cajaControlable(vec3(0.5f,0.5f,0.5f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), Object::cube);
 	Object cajaFija(vec3(0.1f, 0.1f, 0.1f), vec3(0.0f, 0.0f, 0.0f), vec3(4.0f, 0.0f, 0.0f), Object::cube);
@@ -335,13 +337,28 @@ void main() {
 		mat4 matrizDefinitiva;
 
 
+		//PARAMETROS ILUMINACION AMBIENTAL
+		float intensidadAmbiental = 0.2f;
+		float coeficienteAmbiental = 0.1f;
+		float iluminacionAmbiental = intensidadAmbiental*coeficienteAmbiental;
+
+		//PARAMETROS ILUMINACION DIFUSA
+
+		glm::vec3 incidenciaLuz = glm::vec3(3,2,4);
+		float intensidadFuenteDifusa = 0.4f;
+		float coeficienteDifuso = 0.7f;
+
+		//PARAMETROS ILUMINACION ESPECULAR
+		float intensidadFuenteEspecular = 0.2f;
+		float coeficienteEspecular = 0.2f;
+		float rugosidad = 0.5f;
 
 		//Se actualiza la caja controlable
 		cajaControlable.Update(window);
 		
 		//Se busca la matriz definitiva dentro del shader de Phong
 		matrizDefID = glGetUniformLocation(shaderPhong.Program, "matrizDefinitiva");
-
+		
 		//Se asigna la matriz moedlo de la caja controlable a la variable modelMatrix
 		modelMatrix = cajaControlable.GetModelMatrix();
 
@@ -353,7 +370,15 @@ void main() {
 			
 			//Se actualiza la matriz Definitiva del shader
 			glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
-
+			glUniformMatrix4fv(glGetUniformLocation(shaderPhong.Program, "matrizModeloInversaT"), 1, GL_FALSE,glm::value_ptr(glm::transpose(glm::inverse(modelMatrix))));
+			glUniform1f(glGetUniformLocation(shaderPhong.Program, "iluminacionAmbiental"),iluminacionAmbiental);
+			glUniform3f(glGetUniformLocation(shaderPhong.Program, "camPos"), camara.GetPos().x, camara.GetPos().y, camara.GetPos().z);
+			glUniform3f(glGetUniformLocation(shaderPhong.Program, "incidenciaLuz"), incidenciaLuz.x,incidenciaLuz.y,incidenciaLuz.z);
+			glUniform1f(glGetUniformLocation(shaderPhong.Program, "intensidadFuenteDifusa"), intensidadFuenteDifusa);
+			glUniform1f(glGetUniformLocation(shaderPhong.Program, "coeficienteDifuso"), coeficienteDifuso);
+			glUniform1f(glGetUniformLocation(shaderPhong.Program, "intensidadFuenteEspecular"), intensidadFuenteEspecular);
+			glUniform1f(glGetUniformLocation(shaderPhong.Program, "coeficienteEspecular"), coeficienteEspecular);
+			glUniform1f(glGetUniformLocation(shaderPhong.Program, "rugosidad"), rugosidad);
 			//Se dibuja el cubo controlable
 			cajaControlable.Draw();
 
