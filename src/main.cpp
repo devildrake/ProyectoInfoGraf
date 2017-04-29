@@ -20,7 +20,7 @@ bool WIDEFRAME = false;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void cursor_callback(GLFWwindow* window,double xPos, double yPos);
 void scroll_callback(GLFWwindow* window,double xOffset, double yOffset);
-
+bool simulatePoint, simulateDirectional, simulateFocal;
 #pragma region Clase Camera
 
 class Camera
@@ -204,6 +204,9 @@ Camera camara(vec3(0, 0, 3), normalize(vec3(0, 0, -3)), 0.04f, 45.0f);
 
 void main() {
 
+	simulateDirectional = simulatePoint = simulateFocal = false;
+
+
 	//initalize GLFW
 
 	if (!glfwInit())
@@ -264,11 +267,15 @@ void main() {
 
 	Shader shaderSimple = Shader("./src/textureVertex3d.vertexshader", "./src/textureFragment3d.fragmentshader");
 	Shader shaderPhong = Shader("./src/phongVertexShader.vertexshader", "./src/phongFragmentShader.fragmentshader");
+	Shader shaderDireccional = Shader("./src/phongDirectionalVertexShader.vertexshader", "./src/phongDirectionalFragmentShader.fragmentshader");
+	Shader shaderPuntual = Shader("./src/phongPuntualVertexShader.vertexshader", "./src/phongPuntualFragmentShader.fragmentshader");
+	Shader shaderFocal = Shader("./src/phongFocalVertexShader.vertexshader", "./src/phongFocalFragmentShader.fragmentshader");
 
 	Object cajaControlable(vec3(0.5f,0.5f,0.5f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 0.0f), Object::cube);
 	Object cajaFija(vec3(0.1f, 0.1f, 0.1f), vec3(0.0f, 0.0f, 0.0f), vec3(4.0f, 0.0f, 0.0f), Object::cube);
+	Object cajaPointLight(vec3(0.5f, 0.5f, 0.5f), vec3(0.0f, 0.0f, 0.0f), vec3(8.0f, 0.0f, 0.0f), Object::cube);
+	Object cajaFocalLight(vec3(0.5f, 0.5f, 0.5f), vec3(0.0f, 0.0f, 0.0f), vec3(-4.0f, 0.0f, 0.0f), Object::cube);
 
-	
 	//Se habilita el buffer de profundidad
 	glEnable(GL_DEPTH_TEST);
 
@@ -353,37 +360,97 @@ void main() {
 		float coeficienteEspecular = 0.2f;
 		float rugosidad = 0.5f;
 
-		//Se actualiza la caja controlable
-		cajaControlable.Update(window);
-		
-		//Se busca la matriz definitiva dentro del shader de Phong
-		matrizDefID = glGetUniformLocation(shaderPhong.Program, "matrizDefinitiva");
-		
-		//Se asigna la matriz moedlo de la caja controlable a la variable modelMatrix
-		modelMatrix = cajaControlable.GetModelMatrix();
+		if (simulateDirectional) {
 
-		//Se usa el programa del shader de phong
-			shaderPhong.USE();
+			//Se actualiza la caja controlable
 
-		//Se genera la matriz definitiva utilizando la model matrix del cubo controlable
+			cajaControlable.Update(window);
+
+			//Se busca la matriz definitiva dentro del shader de Phong
+			matrizDefID = glGetUniformLocation(shaderDireccional.Program, "matrizDefinitiva");
+
+			//Se asigna la matriz moedlo de la caja controlable a la variable modelMatrix
+			modelMatrix = cajaControlable.GetModelMatrix();
+
+			//Se usa el programa del shader de phong
+			shaderDireccional.USE();
+
+			//Se genera la matriz definitiva utilizando la model matrix del cubo controlable
 			matrizDefinitiva = proj*camara.LookAt()*modelMatrix;
 			float c1, c2, c3; c1 = 1.0f; c2 = 0.22f; c3 = 0.2f;
-			float factorAtenuacion = 1/(1+c2*(incidenciaLuz.length())+c3*(incidenciaLuz.length())*(incidenciaLuz.length()));
+			float factorAtenuacion = 1 / (1 + c2*(incidenciaLuz.length()) + c3*(incidenciaLuz.length())*(incidenciaLuz.length()));
 
 			//Se actualiza la matriz Definitiva del shader
 			glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
-			glUniformMatrix4fv(glGetUniformLocation(shaderPhong.Program, "matrizModeloInversaT"), 1, GL_FALSE,glm::value_ptr(glm::transpose(glm::inverse(modelMatrix))));
-			glUniform1f(glGetUniformLocation(shaderPhong.Program, "iluminacionAmbiental"),iluminacionAmbiental);
-			glUniform3f(glGetUniformLocation(shaderPhong.Program, "camPos"), camara.GetPos().x, camara.GetPos().y, camara.GetPos().z);
-			glUniform3f(glGetUniformLocation(shaderPhong.Program, "incidenciaLuz"), incidenciaLuz.x,incidenciaLuz.y,incidenciaLuz.z);
-			glUniform1f(glGetUniformLocation(shaderPhong.Program, "intensidadFuenteDifusa"), intensidadFuenteDifusa);
-			glUniform1f(glGetUniformLocation(shaderPhong.Program, "coeficienteDifuso"), coeficienteDifuso);
-			glUniform1f(glGetUniformLocation(shaderPhong.Program, "intensidadFuenteEspecular"), intensidadFuenteEspecular);
-			glUniform1f(glGetUniformLocation(shaderPhong.Program, "coeficienteEspecular"), coeficienteEspecular);
-			glUniform1f(glGetUniformLocation(shaderPhong.Program, "rugosidad"), rugosidad);
-			glUniform1f(glGetUniformLocation(shaderPhong.Program, "factorAtenuacion"), factorAtenuacion);
+			glUniformMatrix4fv(glGetUniformLocation(shaderDireccional.Program, "matrizModeloInversaT"), 1, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(modelMatrix))));
+			glUniform1f(glGetUniformLocation(shaderDireccional.Program, "iluminacionAmbiental"), iluminacionAmbiental);
+			glUniform3f(glGetUniformLocation(shaderDireccional.Program, "camPos"), camara.GetPos().x, camara.GetPos().y, camara.GetPos().z);
+			glUniform3f(glGetUniformLocation(shaderDireccional.Program, "incidenciaLuz"), incidenciaLuz.x, incidenciaLuz.y, incidenciaLuz.z);
+			glUniform1f(glGetUniformLocation(shaderDireccional.Program, "intensidadFuenteDifusa"), intensidadFuenteDifusa);
+			glUniform1f(glGetUniformLocation(shaderDireccional.Program, "coeficienteDifuso"), coeficienteDifuso);
+			glUniform1f(glGetUniformLocation(shaderDireccional.Program, "intensidadFuenteEspecular"), intensidadFuenteEspecular);
+			glUniform1f(glGetUniformLocation(shaderDireccional.Program, "coeficienteEspecular"), coeficienteEspecular);
+			glUniform1f(glGetUniformLocation(shaderDireccional.Program, "rugosidad"), rugosidad);
+			glUniform1f(glGetUniformLocation(shaderDireccional.Program, "factorAtenuacion"), factorAtenuacion);
 			//Se dibuja el cubo controlable
 			cajaControlable.Draw();
+
+		}
+
+		if (simulatePoint) {
+			cajaPointLight.Update(window);
+			matrizDefID = glGetUniformLocation(shaderPuntual.Program, "matrizDefinitiva");
+			modelMatrix = cajaPointLight.GetModelMatrix();
+			shaderPuntual.USE();
+			matrizDefinitiva = proj*camara.LookAt()*modelMatrix;
+			float c1, c2, c3; c1 = 1.0f; c2 = 0.22f; c3 = 0.2f;
+			float factorAtenuacion = 1 / (1 + c2*(incidenciaLuz.length()) + c3*(incidenciaLuz.length())*(incidenciaLuz.length()));
+			glm::vec3 posicionLuzFocal = glm::vec3(9,2,0);
+			incidenciaLuz = glm::vec3(-1,-2,0 );
+
+			glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
+			glUniformMatrix4fv(glGetUniformLocation(shaderPuntual.Program, "matrizModeloInversaT"), 1, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(modelMatrix))));
+			glUniform1f(glGetUniformLocation(shaderPuntual.Program, "iluminacionAmbiental"), iluminacionAmbiental);
+			glUniform3f(glGetUniformLocation(shaderPuntual.Program, "camPos"), camara.GetPos().x, camara.GetPos().y, camara.GetPos().z);
+			glUniform3f(glGetUniformLocation(shaderPuntual.Program, "incidenciaLuz"), incidenciaLuz.x, incidenciaLuz.y, incidenciaLuz.z);
+			glUniform1f(glGetUniformLocation(shaderPuntual.Program, "intensidadFuenteDifusa"), intensidadFuenteDifusa);
+			glUniform1f(glGetUniformLocation(shaderPuntual.Program, "coeficienteDifuso"), coeficienteDifuso);
+			glUniform1f(glGetUniformLocation(shaderPuntual.Program, "intensidadFuenteEspecular"), intensidadFuenteEspecular);
+			glUniform1f(glGetUniformLocation(shaderPuntual.Program, "coeficienteEspecular"), coeficienteEspecular);
+			glUniform1f(glGetUniformLocation(shaderPuntual.Program, "rugosidad"), rugosidad);
+			glUniform1f(glGetUniformLocation(shaderPuntual.Program, "factorAtenuacion"), factorAtenuacion);
+			glUniform3f(glGetUniformLocation(shaderPuntual.Program, "focusPosition"), posicionLuzFocal.x, posicionLuzFocal.y, posicionLuzFocal.z);
+
+			cajaPointLight.Draw();
+		}
+
+		if (simulateFocal) {
+
+			cajaFocalLight.Update(window);
+			matrizDefID = glGetUniformLocation(shaderFocal.Program, "matrizDefinitiva");
+			modelMatrix = cajaFocalLight.GetModelMatrix();
+			shaderFocal.USE();
+			matrizDefinitiva = proj*camara.LookAt()*modelMatrix;
+			float c1, c2, c3; c1 = 1.0f; c2 = 0.22f; c3 = 0.2f;
+			float factorAtenuacion = 1 / (1 + c2*(incidenciaLuz.length()) + c3*(incidenciaLuz.length())*(incidenciaLuz.length()));
+			glm::vec3 posicionLuzFocal = glm::vec3(-4, 2, 0);
+			incidenciaLuz = glm::vec3(-10, 0, 0);
+
+			glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
+			glUniformMatrix4fv(glGetUniformLocation(shaderFocal.Program, "matrizModeloInversaT"), 1, GL_FALSE, glm::value_ptr(glm::transpose(glm::inverse(modelMatrix))));
+			glUniform1f(glGetUniformLocation(shaderFocal.Program, "iluminacionAmbiental"), iluminacionAmbiental);
+			glUniform3f(glGetUniformLocation(shaderFocal.Program, "camPos"), camara.GetPos().x, camara.GetPos().y, camara.GetPos().z);
+			glUniform3f(glGetUniformLocation(shaderFocal.Program, "incidenciaLuz"), incidenciaLuz.x, incidenciaLuz.y, incidenciaLuz.z);
+			glUniform1f(glGetUniformLocation(shaderFocal.Program, "intensidadFuenteDifusa"), intensidadFuenteDifusa);
+			glUniform1f(glGetUniformLocation(shaderFocal.Program, "coeficienteDifuso"), coeficienteDifuso);
+			glUniform1f(glGetUniformLocation(shaderFocal.Program, "intensidadFuenteEspecular"), intensidadFuenteEspecular);
+			glUniform1f(glGetUniformLocation(shaderFocal.Program, "coeficienteEspecular"), coeficienteEspecular);
+			glUniform1f(glGetUniformLocation(shaderFocal.Program, "rugosidad"), rugosidad);
+			glUniform1f(glGetUniformLocation(shaderFocal.Program, "factorAtenuacion"), factorAtenuacion);
+			glUniform3f(glGetUniformLocation(shaderFocal.Program, "focusPosition"), posicionLuzFocal.x, posicionLuzFocal.y, posicionLuzFocal.z);
+
+			cajaFocalLight.Draw();
+		}
 
 			//Se repite el proceso para el cubo fijo, pero usando el shader simple y haciendo uso de la matriz modelo del cubo fijo, el cual no se actualiza
 			matrizDefID = glGetUniformLocation(shaderSimple.Program, "matrizDefinitiva");
@@ -428,4 +495,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	//TODO, comprobar que la tecla pulsada es escape para cerrar la aplicación y la tecla w para cambiar a modo widwframe
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		simulateDirectional = !simulateDirectional;
+	}
+	else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		simulatePoint = !simulatePoint;
+	}else if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+		simulateFocal = !simulateFocal;
+	}
+
+
 }

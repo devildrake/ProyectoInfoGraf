@@ -1,0 +1,62 @@
+#version 330 core
+// Ouput data
+out vec4 color;
+in vec4 normal;
+in vec3 position;
+uniform float iluminacionAmbiental;
+uniform vec3 incidenciaLuz;
+uniform float intensidadFuenteDifusa;
+uniform float coeficienteDifuso;
+uniform float intensidadFuenteEspecular;
+uniform float coeficienteEspecular;
+uniform float rugosidad;
+uniform vec3 camPos;
+uniform float factorAtenuacion;
+uniform vec3 focusPosition;
+uniform mat4 matrizDefinitiva;
+void main(){
+vec4 iluminacionDifusa;
+vec4 iluminacionEspecular;
+vec4 colorOriginal = vec4(1,0,0,1);
+vec3 spotPos = vec3(focusPosition.x, 0, focusPosition.z);
+vec3 spotDir = normalize(vec3(matrizDefinitiva * vec4(spotPos - focusPosition, 0)));
+
+vec4 focusPositionModel = matrizDefinitiva*vec4(focusPosition.xyz,1);
+
+vec4 pos; 
+
+
+
+pos = matrizDefinitiva*(vec4((position.xyz),1));
+
+
+vec3 lightDir = normalize(focusPosition.xyz - pos.xyz);
+vec3 D = normalize(spotDir);
+float spotEffect = dot(-lightDir, D);
+
+float spot_cutoff = 45;
+float spot_exponent = 60;
+
+if(spotEffect > spot_cutoff) {
+ spotEffect = pow(spotEffect, spot_exponent);
+
+ vec3 R = reflect(-lightDir, normal.xyz);
+
+ vec3 diffuse  = coeficienteDifuso* intensidadFuenteDifusa* colorOriginal.xyz * max(0.0, dot(normal.xyz, lightDir));
+ vec3 specular = coeficienteEspecular * intensidadFuenteEspecular* colorOriginal.xyz * pow(max(0.0, dot(R, pos.xyz)), rugosidad);
+
+
+ vec3 ambient = iluminacionAmbiental * factorAtenuacion * colorOriginal.xyz;
+ diffuse  *= factorAtenuacion;
+ specular *= factorAtenuacion;
+
+ vec3 frag_color = ambient + diffuse + specular;
+ color = vec4(frag_color, 1.0);
+ 
+}
+else{
+ vec3 ambient = iluminacionAmbiental * factorAtenuacion * colorOriginal.xyz;
+
+color = vec4 (ambient,1);
+}
+}

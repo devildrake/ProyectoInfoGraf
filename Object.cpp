@@ -109,6 +109,11 @@ void Object::Update(GLFWwindow * window) {
 
 	float dt = glfwGetTime() - prevFrame;
 
+	//MAKE STUFF MOVE FASTER IF SHIFT IS HELD
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) {
+		dt *= 2;
+	}
+
 	prevFrame = glfwGetTime();
 
 	if (rotateXMinus) {
