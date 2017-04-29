@@ -367,7 +367,9 @@ void main() {
 
 		//Se genera la matriz definitiva utilizando la model matrix del cubo controlable
 			matrizDefinitiva = proj*camara.LookAt()*modelMatrix;
-			
+			float c1, c2, c3; c1 = 1.0f; c2 = 0.22f; c3 = 0.2f;
+			float factorAtenuacion = 1/(1+c2*(incidenciaLuz.length())+c3*(incidenciaLuz.length())*(incidenciaLuz.length()));
+
 			//Se actualiza la matriz Definitiva del shader
 			glUniformMatrix4fv(matrizDefID, 1, GL_FALSE, glm::value_ptr(matrizDefinitiva));
 			glUniformMatrix4fv(glGetUniformLocation(shaderPhong.Program, "matrizModeloInversaT"), 1, GL_FALSE,glm::value_ptr(glm::transpose(glm::inverse(modelMatrix))));
@@ -379,6 +381,7 @@ void main() {
 			glUniform1f(glGetUniformLocation(shaderPhong.Program, "intensidadFuenteEspecular"), intensidadFuenteEspecular);
 			glUniform1f(glGetUniformLocation(shaderPhong.Program, "coeficienteEspecular"), coeficienteEspecular);
 			glUniform1f(glGetUniformLocation(shaderPhong.Program, "rugosidad"), rugosidad);
+			glUniform1f(glGetUniformLocation(shaderPhong.Program, "factorAtenuacion"), factorAtenuacion);
 			//Se dibuja el cubo controlable
 			cajaControlable.Draw();
 

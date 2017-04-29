@@ -11,15 +11,24 @@ uniform float intensidadFuenteEspecular;
 uniform float coeficienteEspecular;
 uniform float rugosidad;
 uniform vec3 camPos;
-uniform float factorAtenuacion;
+uniform vec3 focusPosition;
+
 void main(){
 vec4 iluminacionDifusa;
 vec4 iluminacionEspecular;
 vec4 colorOriginal = vec4(1,0,0,1);
 
 vec4 iluminacionAmbientalL = colorOriginal*iluminacionAmbiental;
-iluminacionDifusa = colorOriginal * (intensidadFuenteDifusa*coeficienteDifuso*(dot(incidenciaLuz,normal.xyz)) *(1/(1*1+0*1+0*1)));
-iluminacionEspecular = colorOriginal * intensidadFuenteEspecular*coeficienteEspecular*pow((dot((2*dot(incidenciaLuz,normal.xyz)*normal-incidenciaLuz).xyz,camPos)),rugosidad);
 
-	color = factorAtenuacion*(iluminacionAmbientalL+iluminacionDifusa+iluminacionEspecular);
+float diff = max(dot(normal.xyz,-incidenciaLuz),0);
+
+
+
+iluminacionDifusa = vec4(incidenciaLuz.xyz,1) * diff * colorOriginal;
+
+iluminacionEspecular = iluminacionEspecular*esp*vec4(1,1,1,1);
+
+	color = iluminacionAmbientalL+iluminacionDifusa+iluminacionEspecular;
+
+
 }
