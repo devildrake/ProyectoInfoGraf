@@ -2,9 +2,8 @@
 // Ouput data
 out vec4 color;
 in vec4 normal;
-in vec3 position;
+in vec4 position;
 uniform float iluminacionAmbiental;
-uniform vec3 incidenciaLuz;
 uniform float intensidadFuenteDifusa;
 uniform float coeficienteDifuso;
 uniform float intensidadFuenteEspecular;
@@ -12,29 +11,32 @@ uniform float coeficienteEspecular;
 uniform float rugosidad;
 uniform vec3 camPos;
 uniform vec3 focusPosition;
-uniform mat4 matrizDefinitiva;
-uniform float factorAtenuacion;
-
+uniform mat4 matrizModelo;
 void main(){
 
 vec4 colorOriginal = vec4(1,0,0,1);
 
-vec4 focusPositionModel = matrizDefinitiva*vec4(focusPosition.xyz,1);
+    vec3 ambient  =  iluminacionAmbiental * colorOriginal.xyz;
+ 
+	vec3 lightDir = normalize (focusPosition.xyz - position.xyz);
+	
+   float diff = max(dot(normalize(normal.xyz),lightDir),0); 
+	
+	vec3 diffuse = intensidadFuenteDifusa*coeficienteDifuso*diff*colorOriginal.xyz;
+	
+	
+	vec3 viewPortDir = normalize(camPos - position.xyz).xyz;
+	vec3 reflectionDir = reflect(-lightDir,normalize(normal.xyz));
+	
+float esp = pow(max(dot(reflectionDir,viewPortDir),0.0),rugosidad);
+   
+   vec3 specular = intensidadFuenteEspecular*coeficienteEspecular*esp*vec3(1,1,1);
+   
+   float d = length(focusPosition - position.xyz);
+   float fAtt = 1/(1+0.045*d + 0.0075*d*d);
+   
+	color = vec4((ambient+diffuse+specular)*fAtt,1);
 
-   vec3 lightDir = normalize(focusPositionModel.xyz - position);
-    // Diffuse shading
-    float diff = max(dot(normal.xyz, lightDir), 0.0);
-    // Specular shading
-    vec3 reflectDir = reflect(-lightDir, normal.xyz);
-    float spec = pow(max(dot(camPos, reflectDir), 0.0), rugosidad);
-    // Attenuation
-    float distance    = length(focusPositionModel.xyz - position);
-    // Combine results
-    vec3 diffuse  = lightDir *factorAtenuacion  * diff * colorOriginal.xyz;
-    vec3 specular = spec * factorAtenuacion * intensidadFuenteEspecular * coeficienteEspecular*colorOriginal.xyz;
-    vec3 ambient  =  iluminacionAmbiental * factorAtenuacion * colorOriginal.xyz;
-
-	color = vec4(ambient+diffuse+specular,1);
 
 
 }
