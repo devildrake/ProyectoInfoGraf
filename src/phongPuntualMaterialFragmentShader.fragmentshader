@@ -1,0 +1,53 @@
+#version 330 core
+// Ouput data
+out vec4 color;
+in vec4 normal;
+in vec4 position;
+uniform float iluminacionAmbiental;
+uniform float intensidadFuenteDifusa;
+uniform float coeficienteDifuso;
+uniform float intensidadFuenteEspecular;
+uniform float coeficienteEspecular;
+uniform float rugosidad;
+uniform vec3 camPos;
+uniform vec3 focusPosition;
+uniform mat4 matrizModelo;
+in vec2 TexCoord;
+
+struct material{
+sampler2D TexturaDifusa;
+sampler2D TexturaEspecular;
+float shininess;
+};
+
+uniform material miMaterial;
+
+void main(){
+
+vec4 colorOriginal = vec4(1,0,0,1);
+
+    vec3 ambient  =  iluminacionAmbiental * vec3(texture(miMaterial.TexturaDifusa, TexCoord));
+ 
+	vec3 lightDir = normalize (focusPosition.xyz - position.xyz);
+	
+   float diff = max(dot(normalize(normal.xyz),lightDir),0); 
+	
+	vec3 diffuse = intensidadFuenteDifusa*coeficienteDifuso*diff*vec3(texture(miMaterial.TexturaDifusa, TexCoord));
+	
+	
+	vec3 viewPortDir = normalize(camPos - position.xyz).xyz;
+	vec3 reflectionDir = reflect(-lightDir,normalize(normal.xyz));
+	
+float esp = pow(max(dot(reflectionDir,viewPortDir),0.0),miMaterial.shininess);
+   
+   vec3 specular = intensidadFuenteEspecular*coeficienteEspecular*esp*vec3(texture(miMaterial.TexturaEspecular, TexCoord));
+   
+   float d = length(focusPosition - position.xyz);
+   
+   float fAtt = 1/(1+0.045*d + 0.0075*d*d);
+   
+	color = vec4((ambient+diffuse+specular)*fAtt,1);
+
+
+
+}
