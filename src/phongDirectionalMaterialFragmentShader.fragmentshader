@@ -33,17 +33,17 @@ vec3 incidenciaLuzNorm = normalize(-incidenciaLuz);
 
     float diff = max(dot(normalize(normal.xyz), incidenciaLuzNorm), 0.0);
 
-  //  vec3 reflectDir = reflect(-incidenciaLuzNorm, normalize(normal.xyz));
-	//vec3 directionToViewPoint = camPos - incidenciaLuzNorm*999999999;
+    vec3 reflectDir = reflect(-incidenciaLuzNorm, normalize(normal.xyz));
+	vec3 directionToViewPoint = normalize(camPos - position.xyz);
 	
 	
-    //float spec = pow(max(dot(directionToViewPoint, reflectDir), 0.0), miMaterial.shininess);
+    float spec = pow(max(dot(directionToViewPoint, reflectDir), 0.0), miMaterial.shininess);
 
     vec3 diffuse  = coeficienteDifuso * intensidadFuenteDifusa * diff * vec3(texture(miMaterial.TexturaDifusa, TexCoord));
 	
-    //vec3 specular = 0.01 * 0.01 * spec * vec3(texture(miMaterial.TexturaEspecular, TexCoord));
+    vec3 specular = 0.00001 * 0.00001 * spec * vec3(texture(miMaterial.TexturaEspecular, TexCoord));
 	
-//color = vec4(iluminacionAmbientalL + diffuse + specular,1 );
-color = vec4(iluminacionAmbientalL + diffuse ,1 );
+color = vec4(iluminacionAmbientalL + diffuse + specular,1 );
+//color = vec4(iluminacionAmbientalL + diffuse ,1 );
 
 }

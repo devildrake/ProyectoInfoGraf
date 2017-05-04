@@ -294,41 +294,6 @@ void main() {
 		//Establecer el color de fondo (establecido mas arriba)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		
-
-		//GLint locTex = glGetUniformLocation(shader.Program, "ourTexture");
-		//GLint locTex2 = glGetUniformLocation(shader.Program, "ourTexture2");
-		//GLint mixID = glGetUniformLocation(shader.Program, "mixStuff");
-
-
-
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, texture1);
-		//glUniform1i(locTex,0);
-
-	/*	glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
-		glUniform1i(locTex2, 1);*/
-		
-		//glBindVertexArray(VAO);
-
-		//glBindVertexArray(objectInstance.VAO);
-
-
-		//if (aumentarRotLeft) {
-		//	rotacionY-=aumentoRot;
-		//}
-		//else if (aumentarRotRight) {
-		//	rotacionY+= aumentoRot;
-		//}
-
-		//if (aumentarUp) {
-		//	rotacionX -= aumentoRot;
-		//}
-		//else if (aumentarDown) {
-		//	rotacionX += aumentoRot;
-		//}
-
 		//Se calcula la matriz Proyeccion
 		proj = perspective(radians(camara.GetFOV()), (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
@@ -390,7 +355,6 @@ void main() {
 				matrizDefID = glGetUniformLocation(shaderDireccional.Program, "matrizDefinitiva");
 
 				miMaterial.ActivateTextures();
-
 
 				miMaterial.SetMaterial(&shaderDireccional);
 

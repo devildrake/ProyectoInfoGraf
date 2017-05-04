@@ -39,14 +39,14 @@ Material::~Material(){
 }
 
 void Material::SetMaterial(Shader *shad) {
-	GLint locTexDiff = glGetUniformLocation(shad->Program, "miMaterial.TexturaDifusa");
-	GLint locTexSpec = glGetUniformLocation(shad->Program, "miMaterial.TexturaEspecular");
+	GLint locTexDiff = glGetUniformLocation(shad->Program, "material.TexturaDifusa");
+	GLint locTexSpec = glGetUniformLocation(shad->Program, "material.TexturaEspecular");
 	glUniform1i(locTexDiff, 0);
 	glUniform1i(locTexSpec, 1);
 }
 
 void Material::SetShininess(Shader *shad) {
-	glUniform1f(glGetUniformLocation(shad->Program, "miMaterial.shininess"), Shininess);
+	glUniform1f(glGetUniformLocation(shad->Program, "material.shininess"), Shininess);
 }
 
 void Material::ActivateTextures() {
