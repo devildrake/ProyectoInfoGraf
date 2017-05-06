@@ -83,7 +83,7 @@ Object::~Object() {}
 
 void Object::Draw() {
 	glBindVertexArray(VAO);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glPolygonMode(GL_FRONT, GL_FILL);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 }
@@ -92,7 +92,7 @@ void Object::Move(vec3 translation) {
 }
 
 void Object::Scale(vec3 scal) {
-	scale += scal;
+	scale = scal;
 }
 void Object::Update(GLFWwindow * window) {
 	if (!start) {

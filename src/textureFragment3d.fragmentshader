@@ -1,20 +1,12 @@
 #version 330 core
 
-//in vec2 TexCoord;
-
-//in vec3 colorV;
-
 // Ouput data
 out vec4 color;
-//uniform float mixStuff;
-//uniform sampler2D ourTexture;
-//uniform sampler2D ourTexture2;
+
+uniform vec3 queColor;
 
 void main(){
 
-
-	//color = mix(texture(ourTexture, TexCoord), texture(ourTexture2, TexCoord), mixStuff);
-	//color = texture(ourTexture,TexCoord);
-	color = vec4(1,0,0,1);
+	color = vec4(queColor,1);
 	
 }

@@ -53,22 +53,22 @@ void Light::SetLight(Shader *shad, glm::vec3 CamPos) {
 		
 		variable = "plight[" + std::to_string(lightNumber) + "]";
 
-		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".iAmbiental").c_str()), Lambient.x, Lambient.y, Lambient.z);
-		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Ldiffuse").c_str()), Lpos.x, Lpos.y, Lpos.z);
-		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Lspecular").c_str()), Lambient.x, Lambient.y, Lambient.z);
-		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".pos").c_str()), Lambient.x, Lambient.y, Lambient.z);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".LAmbiental").c_str()), Lambient.x, Lambient.y, Lambient.z);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Ldiffuse").c_str()), Ldiffuse.x, Ldiffuse.y, Ldiffuse.z);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Lspecular").c_str()), Lspecular.x, Lspecular.y, Lspecular.z);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".pos").c_str()), Lpos.x, Lpos.y, Lpos.z);
 
 		break;
 	case SPOT:
 		variable = "slight[" + std::to_string(lightNumber) + "]";
 
-		glUniform3f(glGetUniformLocation(shad->Program, (variable+".iAmbiental").c_str()), Lambient.x, Lambient.y, Lambient.z);
-		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Ldiffuse").c_str()), Lpos.x, Lpos.y, Lpos.z);
-		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Lspecular").c_str()), Lambient.x, Lambient.y, Lambient.z);
-		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".pos").c_str()), Lambient.x, Lambient.y, Lambient.z);
-		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".dir").c_str()), Lambient.x, Lambient.y, Lambient.z);
-		glUniform1f(glGetUniformLocation(shad->Program, (variable + ".aperturaMax").c_str()), Lambient.x);
-		glUniform1f(glGetUniformLocation(shad->Program, (variable + ".aperturaMin").c_str()), Lambient.x);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable+".LAmbiental").c_str()), Lambient.x, Lambient.y, Lambient.z);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Ldiffuse").c_str()), Ldiffuse.x, Ldiffuse.y, Ldiffuse.z);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Lspecular").c_str()), Lspecular.x, Lspecular.y, Lspecular.z);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".pos").c_str()), Lpos.x, Lpos.y, Lpos.z);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".dir").c_str()), Ldirection.x, Ldirection.y, Ldirection.z);
+		glUniform1f(glGetUniformLocation(shad->Program, (variable + ".aperturaMax").c_str()), MaxAperture);
+		glUniform1f(glGetUniformLocation(shad->Program, (variable + ".aperturaMin").c_str()), MinAperture);
 
 		break;
 	default:

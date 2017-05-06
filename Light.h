@@ -15,7 +15,6 @@ public:
 		SPOT = 2
 	};
 	Light(glm::vec3 pos, glm::vec3 dir, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, LType lType, int number);
-	~Light();
 	void SetAtt(float constant, float lineal, float quadratic);
 	void SetLight(Shader *shad, glm::vec3 CamPos);
 	void Rotate(glm::vec3 rotation);

@@ -1,7 +1,7 @@
 #version 330 core
 
-#define NUM_MAX_PLIGHTS 4
-#define NUM_MAX_SLIGHTS 4
+#define NUM_MAX_PLIGHTS 2
+#define NUM_MAX_SLIGHTS 3
 
 struct Material{
 sampler2D TexturaDifusa;
@@ -54,14 +54,26 @@ vec3 PointLight(PLight light, vec3 Normal, vec3 viewDirection);
 vec3 SpotLight(SLight light, vec3 Normal, vec3 viewDirection);
 
 void main(){
-vec3 viewPortDir = normalize(camPos - position.xyz);	
+vec3 viewPortDir = normalize(viewPos - FragPos);
 
-color = DirectionalLight(dlight,Normal,viewPortDir)+PointLight(plight[0],Normal,viewPortDir)+SpotLight(slight[0],Normal,viewPortDir);
+
+
+
+color = vec4(DirectionalLight(dlight,Normal,viewPortDir),1);
+
+ 
+for(int i=0;i<NUM_MAX_PLIGHTS;i++){
+
+color+=vec4(PointLight(plight[i],Normal,viewPortDir),1);
+}
+for(int i=0;i<NUM_MAX_SLIGHTS;i++){
+color+=vec4(SpotLight(slight[i],Normal,viewPortDir),1);
+}
 } 
 
 vec3 DirectionalLight(DLight light, vec3 Normal, vec3 viewDirection){
 vec3 outColor;
-vec3 ambient = vec3(texture(material.TexturaDifusa, TexCoord))*light.LAmbiental;
+vec3 ambient = vec3(texture(material.TexturaDifusa, TexCoords))*light.LAmbiental;
 
 vec3 incidenciaLuzNorm = normalize(-light.dir);
 
@@ -75,24 +87,24 @@ vec3 incidenciaLuzNorm = normalize(-light.dir);
 	
     float spec = pow(max(dot(viewDirection, reflectDir), 0.0), material.shininess);
 
-    vec3 diffuse  = Ldiffuse * diff * vec3(texture(material.TexturaDifusa, TexCoord));
+    vec3 diffuse  = light.Ldiffuse * diff * vec3(texture(material.TexturaDifusa, TexCoords));
 	
-    vec3 specular = 0.00001 * 0.00001 * spec * vec3(texture(material.TexturaEspecular, TexCoord));
+    vec3 specular = 0.00001 * 0.00001 * spec * vec3(texture(material.TexturaEspecular, TexCoords));
 	
-outColor = vec4(iluminacionAmbientalL + diffuse + specular,1 );
+outColor = ambient + diffuse + specular;
 
 return outColor;
 }
 
 vec3 PointLight(PLight light, vec3 Normal, vec3 viewDirection){
 vec3 outColor;
-vec3 ambient  =  iAmbiental * vec3(texture(material.TexturaDifusa, TexCoords));
+vec3 ambient  =  light.LAmbiental * vec3(texture(material.TexturaDifusa, TexCoords));
  
 	vec3 lightDir = normalize (light.pos - FragPos);
 	
    float diff = max(dot(normalize(Normal),lightDir),0); 
 	
-	vec3 diffuse = light.intensidadFuenteDifusa*light.coeficienteDifuso*diff*vec3(texture(material.TexturaDifusa, TexCoords));
+	vec3 diffuse = light.Ldiffuse*diff*vec3(texture(material.TexturaDifusa, TexCoords));
 	
 	//viewDirection se calcula con la linea de aqui abajo
 	//vec3 viewPortDir = normalize(viewPos - FragPos);
@@ -100,7 +112,7 @@ vec3 ambient  =  iAmbiental * vec3(texture(material.TexturaDifusa, TexCoords));
 	
 float esp = pow(max(dot(reflectionDir,viewDirection),0.0),material.shininess);
    
-   vec3 specular = light.intensidadFuenteEspecular*light.coeficienteEspecular*esp*vec3(texture(material.TexturaEspecular, TexCoords));
+   vec3 specular = light.Lspecular*esp*vec3(texture(material.TexturaEspecular, TexCoords));
    
    float d = length(light.pos - FragPos);
    
@@ -112,10 +124,10 @@ float esp = pow(max(dot(reflectionDir,viewDirection),0.0),material.shininess);
 
 
 vec3 SpotLight(SLight light, vec3 Normal, vec3 viewDirection){
-
+vec3 outColor;
 vec4 iluminacionDifusa;
 vec4 iluminacionEspecular;
-vec3 iluminacionAmbientalL = vec3(texture(material.TexturaDifusa, TexCoord))*light.iAmbiental;
+vec3 iluminacionAmbientalL = vec3(texture(material.TexturaDifusa, TexCoords))*light.LAmbiental;
 
    float d = length(light.pos - FragPos.xyz);
    float fAtt = 1/(1+0.045*d + 0.0075*d*d);
@@ -126,25 +138,22 @@ vec3 incidenciaLuzNorm = normalize(light.pos - FragPos.xyz);
 
 float theta = dot(incidenciaLuzNorm,normalize(-light.dir));
 
-	if(theta>light.aperturaMax){
+
 		float diff = max(dot(normalize(Normal.xyz),incidenciaLuzNorm),0.0);
-		vec3 diffuse = light.intensidadFuenteDifusa*light.coeficienteDifuso*diff*vec3(texture(material.TexturaDifusa, TexCoord));
+		vec3 diffuse = light.Ldiffuse*diff*vec3(texture(material.TexturaDifusa, TexCoords));
 
 		//vec3 viewPortDir = normalize(camPos - position.xyz);
 		vec3 reflectionDir = reflect(-incidenciaLuzNorm,normalize(Normal.xyz));
 		float esp = pow(max(dot(reflectionDir,viewDirection),0.0),material.shininess);
 
-		vec3 specular = light.intensidadFuenteEspecular*light.coeficienteEspecular*esp*vec3(texture(material.TexturaEspecular, TexCoord)); 
+		vec3 specular = light.Lspecular*esp*vec3(texture(material.TexturaEspecular, TexCoords)); 
 
 		float epsilon = light.aperturaMin - light.aperturaMax;
 		float inte = clamp((theta-light.aperturaMax)/epsilon,0,1);
    
    vec3 sumaIluminaciones = specular+iluminacionAmbientalL + diffuse;
 
-		color = vec4(inte*fAtt*sumaIluminaciones,1);
-   
-	}else{
-	color = vec4(fAtt * iluminacionAmbientalL,1);
-	}
-	
+		outColor = inte*fAtt*sumaIluminaciones;
+
+	return outColor; 
 }
