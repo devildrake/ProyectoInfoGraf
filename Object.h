@@ -29,6 +29,7 @@ private:
 	GLuint VBO, VAO; //EBO;
 	vec3 position;
 	vec3 scale;
+	bool paintInside;
 	float incrementoRot;
 	float rotacionX, rotacionY;
 };

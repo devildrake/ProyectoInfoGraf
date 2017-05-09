@@ -397,16 +397,28 @@ void main() {
 
 		if(useDirectional)
 		luzDireccional.SetLight(&shaderPhong,camara.GetPos());
+		else {
+			luzDireccional.EmptyLight(&shaderPhong);
+		}
 
 		if (usePoints) {
 			luzPuntual1.SetLight(&shaderPhong, camara.GetPos());
 			luzPuntual2.SetLight(&shaderPhong, camara.GetPos());
 		}
-
+		else {
+			luzPuntual1.EmptyLight(&shaderPhong);
+			luzPuntual2.EmptyLight(&shaderPhong);
+		}
 		if (useSpots) {
 			luzFocal1.SetLight(&shaderPhong, camara.GetPos());
 			luzFocal2.SetLight(&shaderPhong, camara.GetPos());
 			luzFocal3.SetLight(&shaderPhong, camara.GetPos());
+		}
+		else {
+			luzFocal1.EmptyLight(&shaderPhong);
+			luzFocal2.EmptyLight(&shaderPhong);
+			luzFocal3.EmptyLight(&shaderPhong);
+
 		}
 
 		cajaControlable.Draw();

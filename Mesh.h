@@ -9,7 +9,7 @@
 #include <GL\glew.h>
 #include <gtc\matrix_transform.hpp>
 #include<glm.hpp>
-#include <assimp\types.h>
+#include <..\assimp\include\assimp\types.h>
 
 class Mesh {
 public:

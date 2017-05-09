@@ -17,6 +17,7 @@ public:
 	Light(glm::vec3 pos, glm::vec3 dir, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, LType lType, int number);
 	void SetAtt(float constant, float lineal, float quadratic);
 	void SetLight(Shader *shad, glm::vec3 CamPos);
+	void EmptyLight(Shader *shad);
 	void Rotate(glm::vec3 rotation);
 	void SetDirection(glm::vec3 dir);
 	void SetAperture(float min, float max);

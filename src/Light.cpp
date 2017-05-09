@@ -34,6 +34,38 @@ void Light::SetAperture(float min, float max) {
 	MinAperture = min;
 	MaxAperture = max;
 }
+void Light::EmptyLight(Shader *shad) {
+	std::string variable;
+
+	switch (LightType) {
+	case DIRECTIONAL:
+
+		glUniform3f(glGetUniformLocation(shad->Program, "dlight.LAmbiental"), 0,0,0);
+		glUniform3f(glGetUniformLocation(shad->Program, "dlight.Ldiffuse"), 0,0,0);
+		glUniform3f(glGetUniformLocation(shad->Program, "dlight.Lspecular"), 0,0,0);
+
+		break;
+	case POINT:
+
+		variable = "plight[" + std::to_string(lightNumber) + "]";
+
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".LAmbiental").c_str()), 0,0,0);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Ldiffuse").c_str()), 0,0,0);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Lspecular").c_str()), 0,0,0);
+
+		break;
+	case SPOT:
+		variable = "slight[" + std::to_string(lightNumber) + "]";
+
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".LAmbiental").c_str()),0,0,0);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Ldiffuse").c_str()),  0, 0, 0);
+		glUniform3f(glGetUniformLocation(shad->Program, (variable + ".Lspecular").c_str()),  0, 0, 0);
+
+		break;
+	default:
+		break;
+	}
+}
 
 void Light::SetLight(Shader *shad, glm::vec3 CamPos) {
 	std::string variable;
